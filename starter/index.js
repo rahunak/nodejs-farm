@@ -25,10 +25,13 @@ const data = fs.readFileSync(`${__dirname}/dev-data/data.json`);
 const dataObj = JSON.parse(data);
 
 const server = http.createServer((req, res) => {
-    const request_url = req.url;
-    console.log('request_url', request_url);
+
+    const { pathname, query } = url.parse(req.url, true);
+    console.log('pathname', pathname);
+
+    console.log('query', query);
     //OVERVIEW
-    if (request_url === '/' || request_url === '/overview') {
+    if (pathname === '/' || pathname === '/overview') {
 
         const productsHtml = dataObj.map(product => replaceTemplate(templCard, product)).join('');
 
@@ -37,15 +40,19 @@ const server = http.createServer((req, res) => {
         res.end(overviewHtml);
 
         //PRODUCT
-    } else if (request_url === '/product') {
-        res.end(templProducts);
+    } else if (pathname === '/product') {
+        const productObj = dataObj[query['id']];
+        console.log('productObj-->', productObj);
+        const productHtml = replaceTemplate(templProducts, productObj);
+        
+        res.end(productHtml);
     }
     //STYLE
-    else if (request_url === '/product_style.css') {
+    else if (pathname === '/product_style.css') {
         res.end(product_style);
     }
     //API
-    else if (request_url === '/api') {
+    else if (pathname === '/api') {
         res.writeHead(200, { 'content-type': 'application/json' });
         res.end(data);
     }
@@ -56,6 +63,6 @@ const server = http.createServer((req, res) => {
 
 })
 
-server.listen(8000, '127.0.0.2', () => {
+server.listen(8000, '127.0.0.1', () => {
     console.log("Listening reqests on 8000 port.")
 })
